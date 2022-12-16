@@ -1,0 +1,6 @@
+build
+vendor
+env
+.env
+dist
+__pycache__

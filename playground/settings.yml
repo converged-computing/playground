@@ -1,0 +1,17 @@
+# The cloud cost estimator settings file allows for customization
+# of setting for the estimator.
+
+# backends that are supported
+backends: [docker] #[aws, google, docker]
+
+# config editor
+config_editor: vim
+
+# Backend specific settings
+default_backend: docker
+
+google:
+  region: "us-east1"
+
+aws:
+  region: "us-east-1"
