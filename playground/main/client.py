@@ -79,4 +79,4 @@ class Playground:
             logger.error(f"There is no tutorial found named {name} for {self.repo}")
             return
         self.check_envars(tutorial, envars)
-        return self.backend().deploy(tutorial, envars)
+        return self.backend(settings=self.settings).deploy(tutorial, envars)

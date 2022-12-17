@@ -96,14 +96,6 @@ $ playground deploy --env password=newplayground github.com/rse-ops/flux-tutoria
 Note that order is important - the flags need to come before the position arguments! Press control C when you want
 to kill it from running. And that's it!
 
-#### aws
-
-We also support an aws backend. This means creating a security group (and matching virtual cloud) for
-the tutorials (with http/https access) and then launching a container to run the same start command.
-
-```bash
-$ playground deploy --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
-```
 
 ### gcp
 
@@ -112,6 +104,15 @@ environment (given not defined for the tutorial). For a basic deployment:
 
 ```bash
 $ playground deploy --backend gcp github.com/rse-ops/flux-tutorials radiuss-aws-2022
+```
+
+#### aws
+
+We also support an aws backend. This means creating a security group (and matching virtual cloud) for
+the tutorials (with http/https access) and then launching a container to run the same start command.
+
+```bash
+$ playground deploy --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 
 ### instances

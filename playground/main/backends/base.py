@@ -11,27 +11,32 @@ class Backend:
 
     name = "backend"
 
-    def __init__(self):
+    def __init__(self, settings=None):
+
+        self._settings = settings
 
         # If we weren't created with settings, add empty
-        if not hasattr(self, "settings"):
+        if not self._settings:
             from playground.main.settings import Settings
 
-            self.settings = Settings()
+            self._settings = Settings()
+
+    @property
+    def settings(self):
+        """
+        Return cloud specific settings.
+        """
+        return self._settings.get(self.name, {})
 
     def __str__(self):
         return str(self.__class__.__name__)
 
-    def check_envars(self, tutorial, envars):
-        """
-        Check envars will ensure required are present.
-        """
-        import IPython
-
-        IPython.embed()
-
     def instances(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "The instances function is not implemented for this class."
+        )
 
     def deploy(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "The deploy function is not implemented for this class."
+        )

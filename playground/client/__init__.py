@@ -50,14 +50,6 @@ def get_parser():
         dest="settings_file",
         help="custom path to settings file.",
     )
-    parser.add_argument(
-        "-b",
-        "--backend",
-        dest="backend",
-        help="the backend to use (defaults to docker)",
-        choices=backends.backend_names,
-        default="docker",
-    )
 
     # On the fly updates to config params
     parser.add_argument(
@@ -165,6 +157,16 @@ playground config add cloud aws""",
         action="append",
     )
     deploy.add_argument("tutorial_name", help="the tutorial name to deploy (required)")
+
+    for command in deploy, show, listing, shell:
+        command.add_argument(
+            "-b",
+            "--backend",
+            dest="backend",
+            help="the backend to use (defaults to docker)",
+            choices=backends.backend_names,
+            default="docker",
+        )
 
     return parser
 

@@ -8,6 +8,8 @@ import json
 import jsonschema
 
 import playground.main.schemas as schemas
+import playground.main.templates as templates
+import playground.utils as utils
 from playground.logger import logger
 
 
@@ -75,6 +77,31 @@ class Tutorial:
         self._config = metadata
         self.name = name
         self.validate()
+
+    @property
+    def slug(self):
+        return utils.slugify(self.title)
+
+    def prepare_startup_script(self, envars=None):
+        """
+        Prepare the script to launch the tutorial via the instance.
+        """
+        envars = envars or {}
+        command = f"sudo docker pull {self.container}\nsudo docker run -it --rm"
+        hidden = command
+        for port in self.container_ports:
+            command += f" -p {port}"
+            hidden += f" -p {port}"
+
+        # Add envars
+        for key, value in envars.items():
+            command += f" --env {key}={value}"
+            hidden += f' --env {key}={len(value)*"*"}'
+
+        command += " " + self.container
+        hidden += " " + self.container
+        logger.info(hidden)
+        return templates.docker_template + "\n" + command
 
     def validate(self):
         """

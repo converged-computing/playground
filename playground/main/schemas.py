@@ -28,7 +28,7 @@ envars = {
     "required": ["name"],
 }
 
-backend_properties = {"region": {"type": "string"}}
+backend_properties = {"zone": {"type": "string"}, "instance": {"type": "string"}}
 tutorial_container = {
     "type": "object",
     "properties": {
@@ -84,7 +84,7 @@ settings_properties = {
         "type": "object",
         "properties": backend_properties,
         "additionalProperties": False,
-        "required": ["region"],
+        "required": ["zone"],
     },
     "google": {"type": "object", "properties": backend_properties},
     "backends": {

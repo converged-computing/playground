@@ -30,7 +30,7 @@ class DockerClient(Backend):
 
     def deploy(self, tutorial, envars=None):
         """
-        Use the API to retrieve and return prices to cache.
+        Deploy via a docker container (locally)
         """
         envars = envars or {}
 
