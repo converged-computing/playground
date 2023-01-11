@@ -20,6 +20,7 @@ def slugify(name):
     """
     for char in [" ", ":", "/", "\\"]:
         name = name.replace(char, "-")
+    name = name.replace("---", "-").replace("--", "-")
     return name.lower()
 
 

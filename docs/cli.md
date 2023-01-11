@@ -105,6 +105,17 @@ environment (given not defined for the tutorial). For a basic deployment:
 ```bash
 $ playground deploy --backend gcp github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
+```console
+sudo docker pull ghcr.io/rse-ops/flux-radiuss-aws-2022:jupyter-3.0.0
+sudo docker run -t --rm -p 8000:8000 ghcr.io/rse-ops/flux-radiuss-aws-2022:jupyter-3.0.0
+https://111.111.44.222:8000
+```
+Since it will be pulling and starting a potentially large container, give it a minute or two
+before following the link! When you are ready to stop:
+
+```bash
+$ playground stop --backend gcp github.com/rse-ops/flux-tutorials radiuss-aws-2022
+```
 
 #### aws
 

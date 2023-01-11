@@ -80,3 +80,15 @@ class Playground:
             return
         self.check_envars(tutorial, envars)
         return self.backend(settings=self.settings).deploy(tutorial, envars)
+
+    def stop(self, name):
+        """
+        Stop a tutorial and clean up.
+        """
+        if not self.backend:
+            raise ValueError("A backend is required to deploy a tutorial to.")
+        tutorial = self.get_tutorial(name)
+        if not tutorial:
+            logger.error(f"There is no tutorial found named {name} for {self.repo}")
+            return
+        return self.backend(settings=self.settings).stop(tutorial)

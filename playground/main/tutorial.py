@@ -82,12 +82,13 @@ class Tutorial:
     def slug(self):
         return utils.slugify(self.title)
 
-    def prepare_startup_script(self, envars=None):
+    def prepare_startup_script(self, envars=None, interactive=False):
         """
         Prepare the script to launch the tutorial via the instance.
         """
+        inter = "-it" if interactive else "-t"
         envars = envars or {}
-        command = f"sudo docker pull {self.container}\nsudo docker run -it --rm"
+        command = f"sudo docker pull {self.container}\nsudo docker run {inter} --rm"
         hidden = command
         for port in self.container_ports:
             command += f" -p {port}"
@@ -178,6 +179,31 @@ class Tutorial:
     @property
     def container_ports(self):
         return self.data["container"].get("ports") or []
+
+    @property
+    def expose_ports(self):
+        """
+        Return list of ports exposed by the instance (right side of spec)
+        """
+        # Assume all things are webby
+        exposed = ["443", "80"]
+        for port in self.data["container"].get("ports") or []:
+            exposed.append(port.split(":")[-1])
+        return list(set(exposed))
+
+    # Firewall identifiers
+    @property
+    def firewall_name(self):
+        exposed = "-".join(self.expose_ports)
+        return f"firewall-{self.slug}-{exposed}"
+
+    @property
+    def firewall_egress_name(self):
+        return f"{self.firewall_name}-egress"
+
+    @property
+    def firewall_ingress_name(self):
+        return f"{self.firewall_name}-ingress"
 
     @property
     def notebooks(self):

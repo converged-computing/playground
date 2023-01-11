@@ -138,7 +138,12 @@ playground config add cloud aws""",
         description="deploy a tutorial repository.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    for command in show, deploy, listing:
+    stop = subparsers.add_parser(
+        "stop",
+        description="stop a tutorial.",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    for command in show, deploy, listing, stop:
         command.add_argument("repo", help="the tutorial repository to target.")
 
     show.add_argument(
@@ -156,9 +161,12 @@ playground config add cloud aws""",
         help="environment variable key pair key=pair to use during deploy.",
         action="append",
     )
-    deploy.add_argument("tutorial_name", help="the tutorial name to deploy (required)")
+    for command in deploy, stop:
+        command.add_argument(
+            "tutorial_name", help="the tutorial name to target (required)"
+        )
 
-    for command in deploy, show, listing, shell:
+    for command in deploy, show, listing, shell, stop:
         command.add_argument(
             "-b",
             "--backend",
@@ -219,6 +227,8 @@ def run():
         from .deploy import main
     elif args.command == "list":
         from .listing import main
+    elif args.command == "stop":
+        from .stop import main
     elif args.command == "show":
         from .show import main
 
