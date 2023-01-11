@@ -1,7 +1,9 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
+
+from playground.logger import logger
 
 
 class Backend:
@@ -31,9 +33,31 @@ class Backend:
     def __str__(self):
         return str(self.__class__.__name__)
 
+    def ensure_firewall(self, tutorial):
+        """
+        Get or create a firewall.
+        """
+        if not tutorial.expose_ports:
+            logger.info("No ports for expose, no firewall needed.")
+            return
+
+        self.ensure_ingress_firewall(tutorial)
+        self.ensure_egress_firewall(tutorial)
+
+    def ensure_ingress_firewall(self, tutorial):
+        raise NotImplementedError
+
+    def ensure_egress_firewall(self, tutorial):
+        raise NotImplementedError
+
     def instances(self, *args, **kwargs):
         raise NotImplementedError(
             "The instances function is not implemented for this class."
+        )
+
+    def stop(self, *args, **kwargs):
+        raise NotImplementedError(
+            "The stop function is not implemented for this class."
         )
 
     def deploy(self, *args, **kwargs):
