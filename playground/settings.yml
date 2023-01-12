@@ -2,7 +2,7 @@
 # of setting for the estimator.
 
 # backends that are supported
-backends: [docker, google] #[aws, google, docker]
+backends: [docker, google, aws]
 
 # config editor
 config_editor: vim
@@ -16,3 +16,4 @@ google:
 
 aws:
   zone: "us-east-1"
+  instance: "t2.medium"

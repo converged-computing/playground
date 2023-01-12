@@ -4,3 +4,4 @@ env
 .env
 dist
 __pycache__
+*.pem
