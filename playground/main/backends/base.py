@@ -33,6 +33,17 @@ class Backend:
     def __str__(self):
         return str(self.__class__.__name__)
 
+    def show_ip_address(self, url, tutorial):
+        """
+        Show the ip address and warn the user things take a bit to start up.
+        """
+        prefix = "https://" if tutorial.container_https else "http://"
+        url = f"{prefix}{url}"
+        if tutorial.expose_port:
+            url = f"{url}:{tutorial.expose_port}"
+        logger.warning("Note that the container may take a minute or so to pull!")
+        print(url)
+
     def ensure_firewall(self, tutorial):
         """
         Get or create a firewall.

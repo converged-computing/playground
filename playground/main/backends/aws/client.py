@@ -5,7 +5,9 @@
 
 import operator
 import os
-import sys
+from time import time
+
+from cloud_select.main.selectors import InstanceSelector
 
 from playground.logger import logger
 
@@ -69,7 +71,7 @@ class AmazonCloud(Backend):
             CidrBlock=self.cidr_block, TagSpecifications=self.get_tags("vpc", tutorial)
         )
         vpc = self.ec2_resources.Vpc(new_vpc["Vpc"]["VpcId"])
-        vpc.create_tags(Tags=[{"Key": "Name", "Value": tutorial.slug}])
+        vpc.create_tags(Tags=[{"Key": "Name", "Value": tutorial.uid}])
         return vpc
 
     def delete_vpc(self, tutorial):
@@ -81,24 +83,41 @@ class AmazonCloud(Backend):
             logger.info("There is no VPC to delete.")
             return
 
-        # Delete subnets
-        for subnet in vpc.subnets.iterator():
-            subnet.delete()
-
         # Detach internet gateways
         for gateway in vpc.internet_gateways.iterator():
             vpc.detach_internet_gateway(InternetGatewayId=gateway.id)
-            gateway.delete()
+            self.delete_with_backoff(gateway)
 
-        # Delete routing tables and vpc (this seems to handle both)
-        vpc.delete()
+        # Delete subnets and associated instances
+        for subnet in vpc.subnets.iterator():
+            for instance in subnet.instances.iterator():
+                instance.terminate()
+            self.delete_with_backoff(subnet)
+
+        # Delete vpc (this can take some time)
+        self.delete_with_backoff(vpc)
+
+    def delete_with_backoff(self, obj):
+        """
+        Shared function to delete with simple backoff.
+        """
+        deleted = False
+        sleep = 2
+        while not deleted:
+            try:
+                obj.delete()
+                deleted = True
+            except Exception:
+                continue
+            sleep = sleep * 2
+            time.sleep(sleep)
 
     def get_vpc(self, tutorial):
         """
         Get a VPC with tags for the playground-tutorial
         """
         response = self.ec2_client.describe_vpcs(
-            Filters=[{"Name": "tag:Name", "Values": [tutorial.slug]}]
+            Filters=[{"Name": "tag:Name", "Values": [tutorial.uid]}]
         )
         if response["Vpcs"]:
             return self.ec2_resources.Vpc(response["Vpcs"][0]["VpcId"])
@@ -108,14 +127,11 @@ class AmazonCloud(Backend):
         Ensure we have an internet gateway.
         """
         response = self.ec2_client.describe_internet_gateways(
-            Filters=[{"Name": "tag:playground-tutorial", "Values": [tutorial.slug]}]
+            Filters=[{"Name": "tag:playground-tutorial", "Values": [tutorial.uid]}]
         )
         if response["InternetGateways"]:
-            print("TODO ensure subsnet")
-            import IPython
-
-            IPython.embed()
-            sys.exit()
+            for subnet in vpc.subnets.iterator():
+                return subnet
 
         # Create the Internet Gateway and attach to our VPC
         ig = self.ec2_client.create_internet_gateway(
@@ -127,15 +143,16 @@ class AmazonCloud(Backend):
         # Create routing table
         rt = vpc.create_route_table()
         rt.create_route(DestinationCidrBlock="0.0.0.0/0", GatewayId=ig_uid)
-        rt.create_tags(Tags=[{"Key": "Name", "Value": tutorial.slug}])
+        rt.create_tags(Tags=[{"Key": "Name", "Value": tutorial.uid}])
 
         # And public subnet, associated with routine table
         subnet = vpc.create_subnet(
             CidrBlock=self.cidr_block,
             AvailabilityZone="{}{}".format(self.regions[0], self.zone),
         )
-        subnet.create_tags(Tags=[{"Key": "Name", "Value": tutorial.slug}])
+        subnet.create_tags(Tags=[{"Key": "Name", "Value": tutorial.uid}])
         rt.associate_with_subnet(SubnetId=subnet.id)
+        return subnet
 
     def ensure_security_group(self, tutorial, vpc):
         """
@@ -143,7 +160,7 @@ class AmazonCloud(Backend):
         """
         try:
             return self.ec2_client.describe_security_groups(
-                Filters=[{"Name": "group-name", "Values": [tutorial.slug]}]
+                Filters=[{"Name": "group-name", "Values": [tutorial.uid]}]
             )["SecurityGroups"][0]
         except Exception:
             pass
@@ -162,8 +179,8 @@ class AmazonCloud(Backend):
 
         # This can raise an error returned to top level client
         sg = self.ec2_client.create_security_group(
-            GroupName=tutorial.slug,
-            Description=f"Security group for {tutorial.slug}",
+            GroupName=tutorial.uid,
+            Description=f"Security group for {tutorial.uid}",
             VpcId=vpc.id,
         )
 
@@ -180,14 +197,23 @@ class AmazonCloud(Backend):
         Ensure a key pair exists so we can connect to the instance.
         """
         # If we already have the key file, return the identifier
-        key_file = "{}.pem".format(tutorial.slug)
+        key_file = "{}.pem".format(tutorial.uid)
         if os.path.exists(key_file):
-            return tutorial.slug
+            return tutorial.uid
 
-        key_pair = self.ec2_client.create_key_pair(KeyName=tutorial.slug)
+        key_pair = self.ec2_client.create_key_pair(KeyName=tutorial.uid)
         with open(key_file, "w") as pk:
             pk.write(dict(key_pair)["KeyMaterial"])
-        return tutorial.slug
+        return tutorial.uid
+
+    def delete_pem(self, tutorial):
+        """
+        Delete key pair file.
+        """
+        # If we already have the key file, return the identifier
+        key_file = "{}.pem".format(tutorial.uid)
+        if os.path.exists(key_file):
+            os.remove(key_file)
 
     def get_ami(self):
         """
@@ -214,7 +240,7 @@ class AmazonCloud(Backend):
         """
         Stop an instance.
         """
-        instances = self.get_instances(tutorial.slug)
+        instances = self.get_instances(tutorial.uid)
         if not instances:
             logger.info("There are no instances to stop.")
             return
@@ -227,7 +253,7 @@ class AmazonCloud(Backend):
         """
         Stop and delete internet gateways.
         """
-        gateways = self.get_gateways(tutorial.slug)
+        gateways = self.get_gateways(tutorial.uid)
         if not gateways:
             logger.info("There are no gateways to stop.")
             return
@@ -240,7 +266,7 @@ class AmazonCloud(Backend):
         """
         Clean up the security groups
         """
-        sgs = self.get_security_groups(tutorial.slug)
+        sgs = self.get_security_groups(tutorial.uid)
         if not sgs:
             logger.info("There are no security groups to delete.")
             return
@@ -253,7 +279,7 @@ class AmazonCloud(Backend):
         """
         Clean up routing tables
         """
-        tables = self.get_routing_tables(tutorial.slug)
+        tables = self.get_routing_tables(tutorial.uid)
         if not tables:
             logger.info("There are no routing tables to delete.")
             return
@@ -278,15 +304,12 @@ class AmazonCloud(Backend):
         """
         Stop a tutorial
         """
-        # Figure out if it's already running
-        if self.instance_exists(tutorial.slug):
-            self.stop_instance(tutorial)
+        # This deletes routing table, vpc, and subnet
+        self.delete_vpc(tutorial)
+        self.delete_pem(tutorial)
 
         # Clean up security groups
         self.delete_security_group(tutorial)
-
-        # This deletes routing table, vpc, and subnet
-        self.delete_vpc(tutorial)
 
     def get_tags(self, resource, tutorial):
         """
@@ -297,7 +320,7 @@ class AmazonCloud(Backend):
             {
                 "ResourceType": resource,
                 "Tags": [
-                    {"Key": "playground-tutorial", "Value": tutorial.slug},
+                    {"Key": "playground-tutorial", "Value": tutorial.uid},
                 ],
             }
         ]
@@ -350,6 +373,21 @@ class AmazonCloud(Backend):
                         return True
         return False
 
+    def select_instance(self, tutorial):
+        """
+        Run cloud select to choose tutorial instance based on lowest price.
+        """
+        selector = InstanceSelector(cloud="aws")
+
+        # We don't set a default so we can detect None and tell the user we are choosing default
+        instance = selector.select_instance(
+            tutorial.flexible_resources, regions=self.regions
+        )
+        if not instance:
+            instance = self.settings["instance"]
+            logger.info(f"Using default instance {instance}")
+        return instance
+
     def deploy(self, tutorial, envars=None):
         """
         Deploy to AWS
@@ -357,12 +395,13 @@ class AmazonCloud(Backend):
         This article was hugely helpful to get the ordering and relationship of things
         correct! https://arjunmohnot.medium.com/aws-ec2-management-with-python-and-boto-3-59d849f1f58f
         """
-        # TODO cloud select should choose based on memory here
-        instance = self.settings["instance"]
+        # If we have matching regions, use cloud select, otherwise default
+        instance = self.select_instance(tutorial)
+        logger.info(f"You have selected {instance}")
 
         # Figure out if it's already running
-        if self.instance_exists(tutorial.slug):
-            logger.info(f"Instance {tutorial.slug} is already running.")
+        if self.instance_exists(tutorial.uid):
+            logger.info(f"Instance {tutorial.uid} is already running.")
             return
 
         # Step 1: ensure we have VPC
@@ -399,16 +438,9 @@ class AmazonCloud(Backend):
 
         # Create the instance
         res = self.ec2_resources.create_instances(**params, MinCount=1, MaxCount=1)[0]
-        res.create_tags(Tags=[{"Key": "Name", "Value": tutorial.slug}])
+        res.create_tags(Tags=[{"Key": "Name", "Value": tutorial.uid}])
         res.wait_until_running()
         url = res.public_ip_address
 
-        # If we have two default ports, assume there
-        # TODO: add an https option to tutorial, and a config value for
-        # which port we want the user to open!
-        if len(tutorial.expose_ports) == 2:
-            print(f"https://{url}")
-
-        # Otherwise would be the last one
-        else:
-            print(f"https://{url}:{tutorial.expose_ports[-1]}")
+        # Show the ip address, and give a warning about startup time
+        self.show_ip_address(url, tutorial)

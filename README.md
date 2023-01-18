@@ -25,6 +25,8 @@ For early documentation, see ⭐️ [docs](docs) ⭐️
 
 - [ ] there should be an option to pull (or check for exist and then not have to)
 - [ ] port format (list of strings) needs validation
+- [ ] add docs, pretty, and settings notes
+- [ ] cloud select rolling select
 
 ## 😁️ Contributors 😁️
 

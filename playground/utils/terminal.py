@@ -46,7 +46,9 @@ def check_install(software, quiet=True, command="--version"):
 
 
 def get_installdir():
-    """get_installdir returns the installation directory of the application"""
+    """
+    get_installdir returns the installation directory of the application
+    """
     return os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 

@@ -10,6 +10,9 @@ config_editor: vim
 # Backend specific settings
 default_backend: docker
 
+# Don't try to look for best instance, just use instance types here
+disable_cloud_select: false
+
 google:
   zone: "us-central1-a"
   instance: "n2-standard-2"

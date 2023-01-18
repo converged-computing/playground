@@ -24,6 +24,7 @@ INSTALL_REQUIRES = (
     ("rich", {"min_version": None}),
     ("oras", {"min_version": None}),
     ("requests", {"min_version": None}),
+    ("cloud-select-tool", {"min_version": None}),
 )
 
 AWS_REQUIRES = (("boto3", {"min_version": None}),)
