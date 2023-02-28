@@ -1,16 +1,65 @@
-# playground
+# Commands
 
-This is early notes / documentation for the playground client.
+The following commands are suppored when using `playground`:
 
-## Commands
+## config
 
-The following commands are under development (or being spec'd out).
+Config is a handle to see or edit playground settings.
 
-### config
+### get
 
-**todo**
+See a playground setting
 
-### show
+```bash
+$ playground config get backends
+backends                       ['docker', 'google', 'aws']
+```
+
+Or set a value:
+
+```bash
+$ playground config set default_backend docker
+```
+
+Or remove/add a value to a list:
+
+```bash
+$ playground config remove backends docker
+$ playground config add backends docker
+```
+
+Create user settings
+
+```bash
+$ playground config inituser
+```
+
+And edit!
+
+```bash
+$ playground config edit
+```
+
+## list
+
+List is used to list tutorials associated with a repository.
+Any of the following formats will work:
+
+```bash
+$ playground list rse-ops/flux-tutorials
+$ playground list github.com/rse-ops/flux-tutorials
+$ playground list https://github.com/rse-ops/flux-tutorials
+```
+```console
+$ playground list rse-ops/flux-tutorials
+🍓 radiuss-aws-2022
+```
+
+If/when we have a server or some central registry, we could have a `list-tutorials`
+option to show repositories that are available. Note that the convention
+above (for shortened repository names) will work for any command.
+
+## show
 
 To see the full JSON metadata for a particular repository, use `show`:
 
@@ -58,28 +107,9 @@ $ playground show https://github.com/rse-ops/flux-tutorials radiuss-aws-2022
 show is useful because it shows you the environment variables that you can define (with `--env`) when
 you deploy, e.g., "password" discussed next.
 
+## deploy
 
-### list
-
-List is used to list tutorials associated with a repository.
-Any of the following formats will work:
-
-```bash
-$ playground list rse-ops/flux-tutorials
-$ playground list github.com/rse-ops/flux-tutorials
-$ playground list https://github.com/rse-ops/flux-tutorials
-```
-```console
-$ playground list rse-ops/flux-tutorials
-🍓 radiuss-aws-2022
-```
-
-If/when we have a server or some central registry, we could have a `list-tutorials`
-option to show repositories that are available.
-
-### deploy
-
-#### docker
+### docker
 
 Deploy a playground tutorial from a GitHub repository.
 
@@ -95,7 +125,6 @@ $ playground deploy --env password=newplayground github.com/rse-ops/flux-tutoria
 ```
 Note that order is important - the flags need to come before the position arguments! Press control C when you want
 to kill it from running. And that's it!
-
 
 ### gcp
 
@@ -117,7 +146,7 @@ before following the link! When you are ready to stop:
 $ playground stop --backend gcp github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 
-#### aws
+### aws
 
 We also support an aws backend. This means creating a security group (and matching virtual cloud) for
 the tutorials (with http/https access) and then launching a container to run the same start command.
@@ -132,10 +161,4 @@ And then to stop:
 $ playground stop --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 
-### instances
-
-You can use the "instances" command to see tutorials running on a specific backend.
-
-```bash
-$ go run playground.go instances --backend gcp
-```
+**More coming soon!**

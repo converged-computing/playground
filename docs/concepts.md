@@ -10,13 +10,17 @@ that is pre-built with the software.
 
 A backend is a cloud, local, or other means to deploy a tutorial. E.g,
 you can run `playground deploy` with a local Docker backend to run the
-tutorial on your local machine. Current desired backends will include:
+tutorial on your local machine. Current desired backends include:
 
  - **Docker**: run the tutorial via a Docker container (local)
- - **Podman**: run the tutorial via a Podman container (local or HPC)
- - **Singularity**: run the tutorial via a Singularity container (e.g., for HPC)
  - **AWS**: run the tutorial on an AWS EC2 instance
  - **GCP**: run the tutorial on Google Compute Engine
+
+And coming soon or hopefully (when resources allow):
+
+ - **Podman**: run the tutorial via a Podman container (local or HPC)
+ - **Singularity**: run the tutorial via a Singularity container (e.g., for HPC)
+ - **Azure**: run the tutorial on Azure cloud
 
 ## Tutorial
 
@@ -73,3 +77,5 @@ notebooks:
     tags: ['developer', 'aws']
 ```
 We currently ask for a GitHub identifier to retrieve metadata about the project. The current assumption above is that tutorials are grouped based on similar resource needs using the same container.
+
+You can read a more complete guide for making your own tutorial repositories under [tutorials.md](tutorials.md)

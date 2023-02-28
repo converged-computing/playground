@@ -23,10 +23,10 @@ For early documentation, see ⭐️ [docs](docs) ⭐️
 
 ## TODO
 
+- [ ] add podman backend
 - [ ] testing
 - [ ] there should be an option to pull (or check for exist and then not have to)
 - [ ] port format (list of strings) needs validation
-- [ ] add docs, pretty, and settings notes
 
 ## 😁️ Contributors 😁️
 

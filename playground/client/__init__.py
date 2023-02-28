@@ -115,10 +115,10 @@ playground -c rm:registry:/tmp/registry""",
 playground config set key value
 playground config set key:subkey value
 playground config get key
-playground edit
+playground config edit
 playground config inituser
-playground config remove cloud aws
-playground config add cloud aws""",
+playground config remove backend aws
+playground config add backend aws""",
         type=str,
     )
 
@@ -225,6 +225,8 @@ def run():
     # Does the user want a shell?
     if args.command == "deploy":
         from .deploy import main
+    elif args.command == "config":
+        from .config import main
     elif args.command == "list":
         from .listing import main
     elif args.command == "stop":

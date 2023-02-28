@@ -6,13 +6,13 @@
 import sys
 
 import playground.defaults as defaults
-import playground.utils
+import playground.utils as utils
 from playground.logger import logger
-from playground.main import Client
+from playground.main import Playground
 
 
 def main(args, parser, extra, subparser):
-    playground.utils.ensure_no_extra(extra)
+    utils.ensure_no_extra(extra)
 
     # If nothing provided, show help
     if not args.params:
@@ -26,11 +26,10 @@ def main(args, parser, extra, subparser):
     if args.central:
         args.settings_file = defaults.default_settings_file
 
-    cli = Client(
+    cli = Playground(
+        None,
         quiet=args.quiet,
         settings_file=args.settings_file,
-        cache_dir=args.cache_dir,
-        clouds=args.clouds,
     )
 
     # For each new setting, update and save!

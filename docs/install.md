@@ -1,5 +1,7 @@
 # Installation
 
+## Virtual Environment
+
 You can typically create an environment
 
 ```bash
@@ -7,21 +9,23 @@ $ python -m venv env
 $ source env/bin/activate
 ```
 
+## Pip
+
 You can install with no backends (defaults to just docker) or podman)
 or specific ones:
 
 ```bash
 # No backends
-$ pip install playground-python
+$ pip install playground-tutorials
 
 # All backends
-$ pip install playground-python[all]
+$ pip install playground-tutorials[all]
 
 # Google Cloud
-$ pip install playground-python[google]
+$ pip install playground-tutorials[google]
 
 # Amazon web services
-$ pip install playground-python[aws]
+$ pip install playground-tutorials[aws]
 ```
 
 or install from the repository:
@@ -42,6 +46,8 @@ This should place an executable, `playground` in your path.
 
 
 ## Podman
+
+> **coming soon**
 
 If you want to use Podman containers, you'll need podman!
 There are notes on installing Podman [here](https://podman.io/getting-started/installation)

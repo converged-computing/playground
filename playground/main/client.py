@@ -15,11 +15,13 @@ class Playground:
     A playground is a tutorial repository + backend
     """
 
-    def __init__(self, repo, backend="docker", **kwargs):
+    def __init__(self, repo=None, backend="docker", **kwargs):
         validate = kwargs.get("validate", True)
         self.quiet = kwargs.get("quiet", False)
         self.settings = Settings(kwargs.get("settings_file"), validate)
-        self.repo = repository.Repository(repo)
+        self.repo = None
+        if repo is not None:
+            self.repo = repository.Repository(repo)
         self.backend = backends.get_backend(backend)
 
     def __repr__(self):
