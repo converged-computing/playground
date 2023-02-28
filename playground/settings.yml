@@ -1,5 +1,5 @@
-# The cloud cost estimator settings file allows for customization
-# of setting for the estimator.
+# The playground settings file allows for customization
+# of setting for the tool.
 
 # backends that are supported
 backends: [docker, google, aws]
