@@ -3,19 +3,15 @@
 #
 # SPDX-License-Identifier: (MIT)
 
-import json
-
-from rich import print_json
-
 import playground.utils as utils
+from playground.logger import logger
 from playground.main import Playground
 
 
 def main(args, parser, extra, subparser):
     """
-    playground show https://github.com/rse-ops/flux-tutorials
+    playground stop https://github.com/rse-ops/flux-tutorials radiuss-aws-2022
     """
-
     utils.ensure_no_extra(extra)
 
     cli = Playground(
@@ -27,13 +23,7 @@ def main(args, parser, extra, subparser):
 
     # Update config settings on the fly
     cli.settings.update_params(args.config_params)
-    if not args.tutorial_name:
-        tutorials = cli.get_tutorials()
-    else:
-        tutorials = cli.get_tutorial(args.tutorial_name)
-
-    # Print instances to a table
-    if args.outfile:
-        utils.write_json(tutorials, args.outfile, cls=tutorials.Encoder)
-    else:
-        print_json(json.dumps(tutorials, cls=tutorials.Encoder, indent=4))
+    try:
+        cli.stop(args.tutorial_name)
+    except Exception as e:
+        logger.exit(f"Issue with deploy: {e}")

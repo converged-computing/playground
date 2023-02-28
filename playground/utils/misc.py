@@ -1,9 +1,10 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
 
 import copy
+import os
 
 
 def chunks(listing, chunk_size):
@@ -56,3 +57,16 @@ def get_hash(obj):
     for k, v in copied.items():
         copied[k] = get_hash(v)
     return hash(tuple(frozenset(sorted(copied.items()))))
+
+
+def get_user():
+    """
+    Get the name of the user. We first try to import pwd, but fallback to
+    extraction from the environment.
+    """
+    try:
+        import pwd
+
+        return pwd.getpwuid(os.getuid())[0]
+    except Exception:
+        return os.environ.get("USER")

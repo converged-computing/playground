@@ -1,4 +1,4 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
@@ -70,13 +70,22 @@ class Tutorials:
 
 
 class Tutorial:
-
     Encoder = TutorialEncoder
 
     def __init__(self, name, metadata):
         self._config = metadata
         self.name = name
         self.validate()
+        self.user = utils.get_user()
+        if not self.user:
+            raise ValueError("Cannot determine username, set USER in the environment.")
+
+    @property
+    def uid(self):
+        """
+        A slug based on the tutorial and UID (for cloud resources)
+        """
+        return f"{self.user}{utils.slugify(self.title)}"
 
     @property
     def slug(self):
@@ -114,6 +123,7 @@ class Tutorial:
         ):
             raise ValueError(f"Tutorial {self.name} is not valid")
         # Ensure ports parse to two ints
+        ports = set()
         for portset in self.container_ports:
             if ":" not in portset:
                 raise ValueError(
@@ -122,10 +132,17 @@ class Tutorial:
             for port in portset.split(":"):
                 try:
                     int(port)
+                    ports.add(int(port))
                 except ValueError:
                     raise ValueError(
                         f"Port {port} does not correctly convert to an integer and is not valid."
                     )
+
+        # If we have an expose port, ensure it's included in the list above
+        if self.expose_port and int(self.expose_port) not in ports:
+            raise ValueError(
+                f"Found expose port {self.expose_port} that is not included in ports list."
+            )
 
     def __iter__(self):
         """
@@ -171,6 +188,37 @@ class Tutorial:
     @property
     def container(self):
         return self.data["container"]["name"]
+
+    @property
+    def expose_port(self):
+        return self.data["container"].get("expose")
+
+    @property
+    def container_https(self):
+        https = self.data["container"].get("https")
+        if https is None:
+            https = True
+        return https
+
+    @property
+    def resources(self):
+        return self.data.get("resources")
+
+    @property
+    def flexible_resources(self):
+        """
+        Flexible resources adds a range to a request.
+        """
+        resources = {}
+        for key, value in self.resources.items():
+            if key == "cpus":
+                resources["cpus_min"] = value
+                resources["cpus_max"] = value + 2
+            if key == "memory":
+                resources["memory_min"] = value
+                resources["memory_max"] = value + 500
+            # TODO what other specs to allow?
+        return resources
 
     @property
     def container_env(self):

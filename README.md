@@ -3,7 +3,7 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-[![PyPI](https://img.shields.io/pypi/v/cloud-playground)](https://pypi.org/project/cloud-playground/)
+[![PyPI](https://img.shields.io/pypi/v/cloud-playground)](https://pypi.org/project/playground-tutorials/)
 
 <a target="_blank" rel="noopener noreferrer" href="https://github.com/converged-computing/playground/blob/main/docs/img/logo.png">
     <img align="right" style="width: 250px; float: right; padding-left: 20px;" src="https://github.com/converged-computing/playground/raw/main/docs/img/logo.png" alt="Playground Logo">
@@ -23,8 +23,10 @@ For early documentation, see ⭐️ [docs](docs) ⭐️
 
 ## TODO
 
+- [ ] testing
 - [ ] there should be an option to pull (or check for exist and then not have to)
 - [ ] port format (list of strings) needs validation
+- [ ] add docs, pretty, and settings notes
 
 ## 😁️ Contributors 😁️
 

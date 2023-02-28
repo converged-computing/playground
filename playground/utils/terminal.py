@@ -1,4 +1,4 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
@@ -46,7 +46,9 @@ def check_install(software, quiet=True, command="--version"):
 
 
 def get_installdir():
-    """get_installdir returns the installation directory of the application"""
+    """
+    get_installdir returns the installation directory of the application
+    """
     return os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 

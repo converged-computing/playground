@@ -2,7 +2,7 @@
 # of setting for the estimator.
 
 # backends that are supported
-backends: [docker, google] #[aws, google, docker]
+backends: [docker, google, aws]
 
 # config editor
 config_editor: vim
@@ -10,9 +10,13 @@ config_editor: vim
 # Backend specific settings
 default_backend: docker
 
+# Don't try to look for best instance, just use instance types here
+disable_cloud_select: false
+
 google:
   zone: "us-central1-a"
   instance: "n2-standard-2"
 
 aws:
   zone: "us-east-1"
+  instance: "t2.medium"

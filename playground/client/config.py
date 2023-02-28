@@ -1,4 +1,4 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
@@ -12,7 +12,6 @@ from playground.main import Client
 
 
 def main(args, parser, extra, subparser):
-
     playground.utils.ensure_no_extra(extra)
 
     # If nothing provided, show help

@@ -1,4 +1,4 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
@@ -29,12 +29,21 @@ envars = {
 }
 
 backend_properties = {"zone": {"type": "string"}, "instance": {"type": "string"}}
+tutorial_resources = {
+    "type": "object",
+    "properties": {
+        "memory": {"type": "number"},
+        "cpus": {"type": "number"},
+    },
+}
 tutorial_container = {
     "type": "object",
     "properties": {
         "name": {"type": "string"},
         "env": {"type": "array", "items": envars},
         "ports": {"type": "array", "items": {"type": "string"}},
+        "expose": {"type": ["string", "number"]},
+        "https": {"type": "boolean", "default": True},
     },
     "required": ["name"],
 }
@@ -58,6 +67,7 @@ tutorial_properties = {
         "properties": {
             "title": {"type", "string"},
             "container": tutorial_container,
+            "resources": tutorial_resources,
             "project": project,
             "notebooks": {"type": "array", "items": notebook},
         },
@@ -80,6 +90,7 @@ tutorials = {
 settings_properties = {
     "default_backend": {"type": "string"},
     "config_editor": {"type": "string"},
+    "disable_cloud_select": {"type": "boolean"},
     "aws": {
         "type": "object",
         "properties": backend_properties,
@@ -98,6 +109,7 @@ settings = {
     "title": "Settings Schema",
     "type": "object",
     "required": [
+        "disable_cloud_select",
         "backends",
         "google",
         "aws",

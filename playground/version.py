@@ -1,12 +1,12 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
 
-__version__ = "0.0.0"
+__version__ = "0.0.1"
 AUTHOR = "Vanessa Sochat"
 EMAIL = "vsoch@users.noreply.github.com"
-NAME = "playground-python"
+NAME = "playground-tutorials"
 PACKAGE_URL = "https://github.com/converged-computing/playground"
 KEYWORDS = "cloud, tutorial, containers"
 DESCRIPTION = "the fun cloud wrapper 🍬️ to deploy tutorial containers! 📦️"
@@ -22,8 +22,8 @@ INSTALL_REQUIRES = (
     ("ruamel.yaml", {"min_version": None}),
     ("jsonschema", {"min_version": None}),
     ("rich", {"min_version": None}),
-    ("oras", {"min_version": None}),
     ("requests", {"min_version": None}),
+    ("cloud-select-tool", {"min_version": None}),
 )
 
 AWS_REQUIRES = (("boto3", {"min_version": None}),)

@@ -1,9 +1,11 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
 
 import time
+
+from cloud_select.main.selectors import InstanceSelector
 
 from playground.logger import logger
 
@@ -19,6 +21,7 @@ class GoogleCloud(Backend):
 
     def __init__(self, **kwargs):
         self.zone = kwargs.get("zone") or "us-central1-a"
+        self.regions = kwargs.get("regions") or ["us-central1"]
         self.project = None
         self.compute_cli = None
         try:
@@ -186,6 +189,19 @@ class GoogleCloud(Backend):
                 return True
         return False
 
+    def select_instance(self, tutorial):
+        """
+        Run cloud select to choose tutorial instance based on lowest price.
+        """
+        selector = InstanceSelector(cloud="google", regions=self.regions)
+
+        # We don't set a default so we can detect None and tell the user we are choosing default
+        instance = selector.select_instance(tutorial.flexible_resources)
+        if not instance:
+            instance = self.settings["instance"]
+            logger.info(f"Using default instance {instance}")
+        return instance
+
     def deploy(self, tutorial, envars=None):
         """
         Deploy to Google Cloud
@@ -193,10 +209,9 @@ class GoogleCloud(Backend):
         See logs after ssh to instance:
         sudo journalctl -u google-startup-scripts.service
         """
-        # TODO use cloud-select here to get an instance that matches memory
-        # TODO need a way to show log output to user
-        instance = self.settings["instance"]
+        instance = self.select_instance(tutorial)
         zone = self.settings.get("zone") or self.zone
+        logger.info(f"Selected instance {instance}")
 
         # Figure out if it's already running
         if self.instance_exists(tutorial.slug):
@@ -244,15 +259,11 @@ class GoogleCloud(Backend):
                 continue
             url = response["networkInterfaces"][0]["accessConfigs"][0]["natIP"]
 
-        # If we have two default ports, assume there
-        # TODO: add an https option to tutorial, and a config value for
-        # which port we want the user to open!
-        if len(tutorial.expose_ports) == 2:
-            print(f"https://{url}")
+        # Wait until the page does not 404
+        self.wait_until_available(url)
 
-        # Otherwise would be the last one
-        else:
-            print(f"https://{url}:{tutorial.expose_ports[-1]}")
+        # If we have two default ports, assume there
+        self.show_ip_address(url, tutorial)
 
     def _retry_request(self, request, timeout=2, attempts=3):
         """

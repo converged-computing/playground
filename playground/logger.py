@@ -1,4 +1,4 @@
-# Copyright 2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2022-2023 Lawrence Livermore National Security, LLC and other
 # HPCIC DevTools Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (MIT)
@@ -38,7 +38,6 @@ def add_prefix(msg, char=">>"):
 
 
 class ColorizingStreamHandler(_logging.StreamHandler):
-
     BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
     RESET_SEQ = LogColors.ENDC
     COLOR_SEQ = "\033[%dm"

@@ -126,6 +126,12 @@ the tutorials (with http/https access) and then launching a container to run the
 $ playground deploy --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 
+And then to stop:
+
+```bash
+$ playground stop --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
+```
+
 ### instances
 
 You can use the "instances" command to see tutorials running on a specific backend.
