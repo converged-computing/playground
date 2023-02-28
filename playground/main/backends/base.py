@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: (MIT)
 
+import time
+
+import requests
+
 from playground.logger import logger
 
 
@@ -14,7 +18,6 @@ class Backend:
     name = "backend"
 
     def __init__(self, settings=None):
-
         self._settings = settings
 
         # If we weren't created with settings, add empty
@@ -33,6 +36,34 @@ class Backend:
     def __str__(self):
         return str(self.__class__.__name__)
 
+    def wait_until_available(self, url, sleep=2):
+        """
+        Wait until an ip address returns a non-404 response.
+        """
+        ready = False
+
+        while not ready:
+            # Second round of tries won't work until instance service is running
+            try:
+                # We can't verify because even self signed are not good enough!
+                response = requests.get(url, verify=False)
+                if response.status_code == 404:
+                    logger.info(
+                        f"{url} is not ready yet: response code {response.status_code}. Sleeping {sleep} seconds"
+                    )
+                    time.sleep(sleep)
+                    sleep = sleep * 2
+                elif response.status_code != 404:
+                    logger.info(f"{url} is ready: response code {response.status_code}")
+                    ready = True
+                    break
+
+            # First tries will just fail
+            except Exception:
+                logger.info(f"{url} is not ready yet. Sleeping {sleep} seconds")
+                time.sleep(sleep)
+                sleep = sleep * 2
+
     def show_ip_address(self, url, tutorial):
         """
         Show the ip address and warn the user things take a bit to start up.
@@ -41,7 +72,10 @@ class Backend:
         url = f"{prefix}{url}"
         if tutorial.expose_port:
             url = f"{url}:{tutorial.expose_port}"
-        logger.warning("Note that the container may take a minute or so to pull!")
+
+        # Wait until the page does not 404
+        logger.warning("Waiting for tutorial to be ready...")
+        self.wait_until_available(url)
         print(url)
 
     def ensure_firewall(self, tutorial):

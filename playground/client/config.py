@@ -12,7 +12,6 @@ from playground.main import Client
 
 
 def main(args, parser, extra, subparser):
-
     playground.utils.ensure_no_extra(extra)
 
     # If nothing provided, show help

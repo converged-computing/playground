@@ -8,7 +8,6 @@ from playground.main import Client
 
 
 def main(args, parser, extra, subparser):
-
     playground.utils.ensure_no_extra(extra)
     lookup = {"ipython": ipython, "python": python, "bpython": bpython}
     shells = ["ipython", "python", "bpython"]
@@ -32,7 +31,6 @@ def main(args, parser, extra, subparser):
 
 
 def create_client(args):
-
     cli = Client(
         quiet=args.quiet,
         settings_file=args.settings_file,

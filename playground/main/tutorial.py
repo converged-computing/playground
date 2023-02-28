@@ -70,7 +70,6 @@ class Tutorials:
 
 
 class Tutorial:
-
     Encoder = TutorialEncoder
 
     def __init__(self, name, metadata):

@@ -5,7 +5,7 @@
 
 import operator
 import os
-from time import time
+import time
 
 from cloud_select.main.selectors import InstanceSelector
 
@@ -22,7 +22,6 @@ class AmazonCloud(Backend):
     name = "aws"
 
     def __init__(self, **kwargs):
-
         self.regions = kwargs.get("regions") or ["us-east-1"]
         self.zone = kwargs.get("zone") or "a"
         self.project = None
@@ -74,6 +73,97 @@ class AmazonCloud(Backend):
         vpc.create_tags(Tags=[{"Key": "Name", "Value": tutorial.uid}])
         return vpc
 
+    def detach_gateways(self, vpc):
+        """
+        Detach gateways (and if there is an issue, try again)
+        """
+        logger.info("Detaching gateways...")
+        for attach in self.ec2_client.describe_transit_gateway_attachments()[
+            "TransitGatewayAttachments"
+        ]:
+            if attach["ResourceId"] == vpc.vpc_id:
+                self.ec2_client.delete_transit_gateway_vpc_attachment(
+                    TransitGatewayAttachmentId=attach["TransitGatewayAttachmentId"]
+                )
+
+        logger.info("Deleting Network Address Translation (NAT) Gateways...")
+        filters = [{"Name": "vpc-id", "Values": [vpc.vpc_id]}]
+        for gateway in self.ec2_client.describe_nat_gateways(Filters=filters)[
+            "NatGateways"
+        ]:
+            self.ec2_client.delete_nat_gateway(NatGatewayId=gateway["NatGatewayId"])
+
+        # Associate default options
+        options = self.ec2_resources.DhcpOptions("default")
+        if options:
+            options.associate_with_vpc(VpcId=vpc.id)
+
+    def _release_instance_addresses(self, vpc):
+        """
+        Release instance addresses before we delete them.
+        """
+        # Release addresses from instances
+        for subnet in vpc.subnets.all():
+            for instance in subnet.instances.all():
+                filters = [{"Name": "instance-id", "Values": [instance.id]}]
+                addresses = self.ec2_client.describe_addresses(Filters=filters)[
+                    "Addresses"
+                ]
+                for address in addresses:
+                    self.ec2_client.disassociate_address(
+                        AssociationId=address["AssociationId"]
+                    )
+                    self.ec2_client.release_address(
+                        AllocationId=address["AllocationId"]
+                    )
+
+    def delete_peers(self, vpc):
+        """
+        Delete peers connections
+        """
+        logger.info("Deleting peer connections...")
+        for peer in self.ec2_client.describe_vpc_peering_connections()[
+            "VpcPeeringConnections"
+        ]:
+            if peer["AccepterVpcInfo"]["VpcId"] == vpc.vpc_id:
+                conn = self.ec2_resources.VpcPeeringConnection(
+                    peer["VpcPeeringConnectionId"]
+                )
+                self.delete_with_backoff(conn)
+            if peer["RequesterVpcInfo"]["VpcId"] == vpc.vpc_id:
+                conn = self.ec2_resources.VpcPeeringConnection(
+                    peer["VpcPeeringConnectionId"]
+                )
+                self.delete_with_backoff(conn)
+
+    def _wait_for_network_interfaces_deletion(self, vpc):
+        """
+        Wait for all network interfaces to be deleted before continuing!
+        """
+        filters = [{"Name": "vpc-id", "Values": [vpc.vpc_id]}]
+        logger.info("Waiting for network interface deletion...")
+        sleep = 2
+        deleted = False
+
+        while not deleted:
+            if not self.ec2_client.describe_network_interfaces(Filters=filters)[
+                "NetworkInterfaces"
+            ]:
+                deleted = True
+                break
+            else:
+                time.sleep(sleep)
+                sleep = sleep * 2
+
+    def delete_subnets(self, vpc):
+        """
+        Delete subnets
+        """
+        for subnet in vpc.subnets.all():
+            for interface in subnet.network_interfaces.all():
+                self.delete_with_backoff(interface)
+            self.delete_with_backoff(subnet)
+
     def delete_vpc(self, tutorial):
         """
         Delete the vpc and subnets, etc.
@@ -83,19 +173,54 @@ class AmazonCloud(Backend):
             logger.info("There is no VPC to delete.")
             return
 
-        # Detach internet gateways
-        for gateway in vpc.internet_gateways.iterator():
-            vpc.detach_internet_gateway(InternetGatewayId=gateway.id)
-            self.delete_with_backoff(gateway)
+        self.delete_instances(vpc)
 
-        # Delete subnets and associated instances
-        for subnet in vpc.subnets.iterator():
-            for instance in subnet.instances.iterator():
-                instance.terminate()
-            self.delete_with_backoff(subnet)
+        # Detach internet gateways, delete peers
+        self.detach_gateways(vpc)
+        self.delete_peers(vpc)
+
+        # Finally delete VPC endpoints
+        for endpoint in self.ec2_client.describe_vpc_endpoints(
+            Filters=[{"Name": "vpc-id", "Values": [vpc.vpc_id]}]
+        )["VpcEndpoints"]:
+            self.ec2_client.delete_vpc_endpoints(
+                VpcEndpointIds=[endpoint["VpcEndpointId"]]
+            )
+
+        self.delete_security_groups(vpc)
+
+        # delete custom Network ACLs
+        for netacl in vpc.network_acls.all():
+            if not netacl.is_default:
+                netacl.delete()
+
+        # Wait for network interfaces to be deleted
+        self._wait_for_network_interfaces_deletion(vpc)
+        self.delete_subnets(vpc)
+        self.delete_routing_tables(tutorial)
+        self.delete_gateways(vpc)
 
         # Delete vpc (this can take some time)
-        self.delete_with_backoff(vpc)
+        logger.info("Deleting VPC...")
+        self.ec2_client.delete_vpc(VpcId=vpc.vpc_id)
+
+    def delete_gateways(self, vpc):
+        """
+        After detach, delete the gateways.
+        """
+        filters = [{"Name": "vpc-id", "Values": [vpc.vpc_id]}]
+        ids = [
+            g["NatGatewayId"]
+            for g in self.ec2_client.describe_nat_gateways(Filters=filters)[
+                "NatGateways"
+            ]
+        ]
+        for gateway_id in ids:
+            self.ec2_client.delete_nat_gateway(NatGatewayId=gateway_id)
+
+        for gateway in vpc.internet_gateways.all():
+            vpc.detach_internet_gateway(InternetGatewayId=gateway.id)
+            self.delete_with_backoff(gateway)
 
     def delete_with_backoff(self, obj):
         """
@@ -107,10 +232,12 @@ class AmazonCloud(Backend):
             try:
                 obj.delete()
                 deleted = True
-            except Exception:
-                continue
-            sleep = sleep * 2
-            time.sleep(sleep)
+            except Exception as e:
+                logger.warning(
+                    f"Not able to delete yet: {e} Trying again in {sleep} seconds."
+                )
+                time.sleep(sleep)
+                sleep = sleep * 2
 
     def get_vpc(self, tutorial):
         """
@@ -201,6 +328,18 @@ class AmazonCloud(Backend):
         if os.path.exists(key_file):
             return tutorial.uid
 
+        # Does the keypair exist?
+        key_pairs = self.ec2_client.describe_key_pairs(KeyNames=[tutorial.uid]).get(
+            "KeyPairs"
+        )
+        if key_pairs:
+            logger.debug(
+                f"Key pair for {tutorial.uid} already exists, deleting to re-create."
+            )
+            key_pair = key_pairs[0]
+            self.ec2_client.delete_key_pair(KeyName=tutorial.uid)
+
+        # Always create a new one
         key_pair = self.ec2_client.create_key_pair(KeyName=tutorial.uid)
         with open(key_file, "w") as pk:
             pk.write(dict(key_pair)["KeyMaterial"])
@@ -213,6 +352,7 @@ class AmazonCloud(Backend):
         # If we already have the key file, return the identifier
         key_file = "{}.pem".format(tutorial.uid)
         if os.path.exists(key_file):
+            logger.info("Deleting pem...")
             os.remove(key_file)
 
     def get_ami(self):
@@ -246,8 +386,37 @@ class AmazonCloud(Backend):
             return
 
         # shutdown should terminate
-        ids = [x["InstanceId"] for x in instances]
-        self.ec2_client.stop_instances(InstanceIds=ids)
+        ids = [
+            x["InstanceId"]
+            for x in instances
+            if x["State"]["Name"] not in ["stopped", "terminated"]
+        ]
+        if ids:
+            logger.info("Stopping instance...")
+            self.ec2_client.stop_instances(InstanceIds=ids)
+
+    def delete_instances(self, vpc):
+        """
+        Terminate all instances associated with a VPC
+        """
+        self._release_instance_addresses(vpc)
+
+        filters = [{"Name": "vpc-id", "Values": [vpc.vpc_id]}]
+        instances = self.ec2_client.describe_instances(Filters=filters)
+        ids = []
+
+        # Ensure we delete reservations
+        for res in instances["Reservations"]:
+            ids += [instance["InstanceId"] for instance in res["Instances"]]
+
+        if ids:
+            logger.info("Waiting for instances to terminate")
+            waiter = self.ec2_client.get_waiter("instance_terminated")
+            self.ec2_client.terminate_instances(InstanceIds=ids)
+            try:
+                waiter.wait(InstanceIds=ids)
+            except Exception as e:
+                logger.warning(e)
 
     def stop_gateways(self, tutorial):
         """
@@ -262,18 +431,31 @@ class AmazonCloud(Backend):
                 InternetGatewayId=gateway["InternetGatewayId"]
             )
 
-    def delete_security_group(self, tutorial):
+    def delete_security_groups(self, vpc):
         """
         Clean up the security groups
         """
-        sgs = self.get_security_groups(tutorial.uid)
-        if not sgs:
-            logger.info("There are no security groups to delete.")
-            return
-
         # We use the id because using group name assumes default VPC
-        for sg in sgs:
-            self.ec2_client.delete_security_group(GroupId=sg["GroupId"])
+        logger.info("Deleting security groups...")
+        for sg in vpc.security_groups.all():
+            for ingress in sg.ip_permissions:
+                kwargs = {
+                    "DryRun": False,
+                    "GroupId": sg.group_id,
+                    "IpPermissions": [ingress],
+                }
+                self.ec2_client.revoke_security_group_ingress(**kwargs)
+
+            for egress in sg.ip_permissions_egress:
+                kwargs = {
+                    "DryRun": False,
+                    "GroupId": sg.group_id,
+                    "IpPermissions": [egress],
+                }
+                self.ec2_client.revoke_security_group_egress(**kwargs)
+
+            if sg.group_name != "default":
+                self.delete_with_backoff(sg)
 
     def delete_routing_tables(self, tutorial):
         """
@@ -284,7 +466,26 @@ class AmazonCloud(Backend):
             logger.info("There are no routing tables to delete.")
             return
         for table in tables:
-            self.ec2_client.delete_route_table(RouteTableId=table["RouteTableId"])
+            for route in table["Routes"]:
+                if route["Origin"] == "CreateRoute":
+                    self.ec2_client.delete_route(
+                        RouteTableId=table["RouteTableId"],
+                        DestinationCidrBlock=route["DestinationCidrBlock"],
+                    )
+
+            for assoc in table["Associations"]:
+                if not assoc["Main"]:
+                    self.ec2_client.disassociate_route_table(
+                        AssociationId=assoc["RouteTableAssociationId"]
+                    )
+                    self.ec2_client.delete_route_table(
+                        RouteTableId=table["RouteTableId"]
+                    )
+
+        tables = self.get_routing_tables(tutorial.uid)
+        for table in tables:
+            if table["Associations"] == []:
+                self.ec2_client.delete_route_table(RouteTableId=table["RouteTableId"])
 
     def get_routing_tables(self, name):
         """
@@ -294,7 +495,6 @@ class AmazonCloud(Backend):
         for table in self.ec2_client.describe_route_tables(
             Filters=[{"Name": "tag:Name", "Values": [name]}]
         ).get("RouteTables", []):
-            print(table)
             for tag in table.get("Tags", []):
                 if tag["Key"] == "Name" and tag["Value"] == name:
                     tables.append(table)
@@ -304,12 +504,11 @@ class AmazonCloud(Backend):
         """
         Stop a tutorial
         """
-        # This deletes routing table, vpc, and subnet
+        # This is a huge dependency hairball that is hard to get right
         self.delete_vpc(tutorial)
-        self.delete_pem(tutorial)
 
-        # Clean up security groups
-        self.delete_security_group(tutorial)
+        # This is not :)
+        self.delete_pem(tutorial)
 
     def get_tags(self, resource, tutorial):
         """
@@ -369,7 +568,11 @@ class AmazonCloud(Backend):
         for group in self.list_instances().get("Reservations", {}):
             for instance in group.get("Instances", []):
                 for tag in instance.get("Tags", []):
-                    if tag["Key"] == "playground-tutorial" and tag["Value"] == name:
+                    if (
+                        tag["Key"] == "playground-tutorial"
+                        and tag["Value"] == name
+                        and instance["State"]["Name"] != "terminated"
+                    ):
                         return True
         return False
 
@@ -377,12 +580,10 @@ class AmazonCloud(Backend):
         """
         Run cloud select to choose tutorial instance based on lowest price.
         """
-        selector = InstanceSelector(cloud="aws")
+        selector = InstanceSelector(cloud="aws", regions=self.regions)
 
         # We don't set a default so we can detect None and tell the user we are choosing default
-        instance = selector.select_instance(
-            tutorial.flexible_resources, regions=self.regions
-        )
+        instance = selector.select_instance(tutorial.flexible_resources)
         if not instance:
             instance = self.settings["instance"]
             logger.info(f"Using default instance {instance}")
