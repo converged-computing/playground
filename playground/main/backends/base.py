@@ -9,6 +9,9 @@ import requests
 
 from playground.logger import logger
 
+# Even self signed certificates will issue a warning with verify=False
+requests.packages.urllib3.disable_warnings()
+
 
 class Backend:
     """
