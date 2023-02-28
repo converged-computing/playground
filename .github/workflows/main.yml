@@ -18,9 +18,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install playground
-      run: pip install -e .[all]
+      run: sudo pip install -e .[all]
 
     - name: Run tests
       run: |
-        pip install pytest
+        sudo pip install pytest
         pytest -xs playground/tests/test_*.py
