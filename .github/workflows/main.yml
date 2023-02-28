@@ -3,7 +3,7 @@ on: [pull_request]
 
 jobs:
   lint-playground:
-    name: Test Playground
+    name: Lint Playground
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
