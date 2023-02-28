@@ -138,6 +138,15 @@ playground config add backend aws""",
         description="deploy a tutorial repository.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
+    deploy.add_argument(
+        "-o",
+        dest="deploy_options",
+        help=""""Add deploy options for a backend of choice
+playground deploy -o headless:true <args>
+""",
+        action="append",
+    )
+
     stop = subparsers.add_parser(
         "stop",
         description="stop a tutorial.",

@@ -1,13 +1,15 @@
 from .aws import AmazonCloud
 from .docker import DockerClient
 from .google import GoogleCloud
+from .podman import PodmanClient
 
 # backends = {"aws": AmazonCloud}
 backends = {
-    "docker": DockerClient,
-    "google": GoogleCloud,
-    "gcp": GoogleCloud,
     "aws": AmazonCloud,
+    "docker": DockerClient,
+    "gcp": GoogleCloud,
+    "google": GoogleCloud,
+    "podman": PodmanClient,
 }
 backend_names = list(backends)
 

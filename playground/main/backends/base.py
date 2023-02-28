@@ -6,6 +6,9 @@
 import time
 
 import requests
+from rich.live import Live
+from rich.spinner import Spinner
+from rich.text import Text
 
 from playground.logger import logger
 
@@ -39,11 +42,30 @@ class Backend:
     def __str__(self):
         return str(self.__class__.__name__)
 
-    def wait_until_available(self, url, sleep=2):
+    def wait_until_available(
+        self, url, sleep=2, spin=None, text="Waiting for tutorial to be ready..."
+    ):
+        """
+        Wait until a URL is available, updating the status message.
+        """
+        # Wait until the page does not 404
+        spin = Spinner("dots", text=Text(text, style="green"))
+
+        # Show a spinner until ready
+        with Live(spin, refresh_per_second=20):
+            self._wait_until_available(url, spin=spin, sleep=sleep)
+
+    def _wait_until_available(self, url, sleep=2, spin=None):
         """
         Wait until an ip address returns a non-404 response.
         """
         ready = False
+
+        def update_message(text):
+            if spin:
+                spin.update(text=text, style="green")
+            else:
+                logger.debug(text)
 
         while not ready:
             # Second round of tries won't work until instance service is running
@@ -51,21 +73,23 @@ class Backend:
                 # We can't verify because even self signed are not good enough!
                 response = requests.get(url, verify=False)
                 if response.status_code == 404:
-                    logger.info(
+                    update_message(
                         f"{url} is not ready yet: response code {response.status_code}. Sleeping {sleep} seconds"
                     )
                     time.sleep(sleep)
-                    sleep = sleep * 2
+                    sleep = sleep + 2
                 elif response.status_code != 404:
-                    logger.info(f"{url} is ready: response code {response.status_code}")
+                    update_message(
+                        f"{url} is ready: response code {response.status_code}"
+                    )
                     ready = True
                     break
 
             # First tries will just fail
             except Exception:
-                logger.info(f"{url} is not ready yet. Sleeping {sleep} seconds")
+                update_message(f"{url} is not ready yet. Sleeping {sleep} seconds")
                 time.sleep(sleep)
-                sleep = sleep * 2
+                sleep = sleep + 2
 
     def show_ip_address(self, url, tutorial):
         """
@@ -76,10 +100,8 @@ class Backend:
         if tutorial.expose_port:
             url = f"{url}:{tutorial.expose_port}"
 
-        # Wait until the page does not 404
-        logger.warning("Waiting for tutorial to be ready...")
         self.wait_until_available(url)
-        print(url)
+        logger.c.print(f"Ready: {url}")
 
     def ensure_firewall(self, tutorial):
         """

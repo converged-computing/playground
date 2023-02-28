@@ -67,14 +67,14 @@ def run_command(cmd, sudo=False, stream=False):
         cmd = ["sudo"] + cmd
 
     try:
-        output = Popen(cmd, stderr=STDOUT, stdout=stdout)
+        p = Popen(cmd, stderr=STDOUT, stdout=stdout)
 
     except FileNotFoundError:
         cmd.pop(0)
-        output = Popen(cmd, stderr=STDOUT, stdout=PIPE)
+        p = Popen(cmd, stderr=STDOUT, stdout=PIPE)
 
-    t = output.communicate()[0], output.returncode
-    output = {"message": t[0], "return_code": t[1]}
+    t = p.communicate()[0], p.returncode
+    output = {"message": t[0], "return_code": t[1], "pid": p.pid}
 
     if isinstance(output["message"], bytes):
         output["message"] = output["message"].decode("utf-8")

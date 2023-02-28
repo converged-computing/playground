@@ -7,6 +7,7 @@ import time
 
 from cloud_select.main.selectors import InstanceSelector
 
+import playground.logger as log
 from playground.logger import logger
 
 from ..base import Backend
@@ -162,6 +163,31 @@ class GoogleCloud(Backend):
         )
         self._retry_request(request)
 
+        def wait_until_stopped(cli, zone, tutorial):
+            """
+            Keep trying until we are completely stopped, and yield updates.
+            """
+            stopped = False
+            while not stopped:
+                request = cli.compute_cli.instances().get(
+                    project=cli.project, zone=zone, instance=tutorial.slug
+                )
+                try:
+                    response = cli._retry_request(request)
+                except Exception:
+                    stopped = True
+                    break
+                yield response["status"]
+                if response["status"] == "TERMINATED":
+                    stopped = True
+                    break
+
+        log.wrapped_wait(
+            wait_until_stopped,
+            kwargs={"cli": self, "tutorial": tutorial, "zone": zone},
+            start_text="Waiting for instance to terminate...",
+        )
+
         # and the firewalls TODO for multi-user mode we need an option to disable this,
         # or to make the firewalls (and instances) user-specific
         # TODO await for operation https://cloud.google.com/compute/docs/samples/compute-firewall-delete
@@ -202,7 +228,7 @@ class GoogleCloud(Backend):
             logger.info(f"Using default instance {instance}")
         return instance
 
-    def deploy(self, tutorial, envars=None):
+    def deploy(self, tutorial, envars=None, **kwargs):
         """
         Deploy to Google Cloud
 
@@ -258,9 +284,6 @@ class GoogleCloud(Backend):
             if "natIP" not in response["networkInterfaces"][0]["accessConfigs"][0]:
                 continue
             url = response["networkInterfaces"][0]["accessConfigs"][0]["natIP"]
-
-        # Wait until the page does not 404
-        self.wait_until_available(url)
 
         # If we have two default ports, assume there
         self.show_ip_address(url, tutorial)

@@ -26,7 +26,7 @@ optional arguments:
 ## User Settings
 
 By defaults, settings are stored in `settings.yml' in the main playground
-install directory. To create your own copy to customize (and take precendence over the default)
+install directory. To create your own copy to customize (and take precedence over the default)
 you can do:
 
 ```bash
