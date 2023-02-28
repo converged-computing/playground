@@ -6,7 +6,7 @@
 __version__ = "0.0.1"
 AUTHOR = "Vanessa Sochat"
 EMAIL = "vsoch@users.noreply.github.com"
-NAME = "playground-python"
+NAME = "playground-tutorials"
 PACKAGE_URL = "https://github.com/converged-computing/playground"
 KEYWORDS = "cloud, tutorial, containers"
 DESCRIPTION = "the fun cloud wrapper 🍬️ to deploy tutorial containers! 📦️"
