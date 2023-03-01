@@ -166,7 +166,7 @@ $ playground config edit
 
 ## test
 
-Finally, test is  useful to quickly test the functionality of a specific tutorial
+Finally, test is useful to quickly test the functionality of a specific tutorial
 and repository.
 
 ```bash
@@ -187,3 +187,13 @@ Testing stop...
 vanessaflux-tutorial-2022-for-radiuss
 All tests pass!
 ```
+
+You can also provide a local tutorial.yaml file directly:
+
+```bash
+$ playground test ./my-tutorial/tutorial.yaml local
+```
+
+The tutorial name is not known, so we just use "local" as the expected key.
+You can also use the [GitHub Action](action.md) to do this test easily with continuous
+integration.

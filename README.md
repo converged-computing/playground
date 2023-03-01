@@ -17,9 +17,7 @@ repository means we can easily deploy a cloud-based tutorial to test our your so
 This is the goal of playground - grab your repository, and easily deploy a tutorial
 container to different clouds.
 
-🚧️ **under development** 🚧️
-
-For early documentation, see ⭐️ [docs](docs) ⭐️
+⭐️ [View Documentation](https://converged-computing.github.io/playground) ⭐️
 
 ## 😁️ Contributors 😁️
 

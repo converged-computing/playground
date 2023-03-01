@@ -14,6 +14,7 @@ and **Merged pull requests**. Critical items to know are:
 The versions coincide with releases on pip. Only major versions will be released as tags on Github.
 
 ## [0.0.x](https://github.com/converged-computing/playground/tree/main) (0.0.x)
+ - support for manual load and test command (0.0.12)
  - support for podman, updates to google client, testing (0.0.11)
   - add playground test command and release workflow
  - support for aws (working!) deploy (0.0.1)

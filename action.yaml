@@ -1,0 +1,43 @@
+name: "playground tutorial testing action"
+description: "Test a playground tutorial for functionality"
+inputs:
+  source:
+    description: repository or filename to test
+    required:
+  tutorial:
+    description: name of tutorial
+    required: false
+    default: local
+  backend:
+    description: backend tester to use
+    required: false
+    default: docker
+  branch:
+    description: branch of converged-computing/playground to use
+    required: false
+    default: main
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Playground
+      shell: bash
+      env:
+        branch: ${{ inputs.branch }}
+      run: |
+        which playground || (
+            git clone -b ${branch} --depth 1 https://github.com/converged-computing/playground /tmp/playground
+            cd /tmp/playgrond
+            pip install .[all]
+            cd -
+            rm -rf /tmp/playground
+        )
+
+    - name: Test tutorial
+      env:
+        source: ${{ inputs.source }}
+        tutorial: ${{ inputs.tutorial }}
+        backend: ${{ inputs.backend }}
+      run: |
+          playground --backend ${backend} test ${source} ${tutorial}
+      shell: bash

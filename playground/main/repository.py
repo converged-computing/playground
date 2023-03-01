@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (MIT)
 
+import os
 import re
 
 import jsonschema
@@ -10,6 +11,7 @@ import requests
 
 import playground.main.schemas as schemas
 import playground.main.tutorial as tutorials
+import playground.utils as utils
 from playground.logger import logger
 
 
@@ -28,7 +30,17 @@ class Repository:
             )
 
     def parse(self, repo):
+        """
+        Parse the repository URI to ensure it matches
+        """
         self.raw = repo
+
+        # A local tutorial file is valid
+        if os.path.exists(repo):
+            self.vcs = "local"
+            self.fullname = os.path.abspath(repo)
+            return True
+
         regexp = re.compile(
             "(?P<prefix>(http|https)://)?(?P<vcs>github[.]com)?(/)?(?P<repository>.*)"
         )
@@ -61,13 +73,17 @@ class Repository:
         load and validate tutorial metadata
         """
         tset = tutorials.Tutorials()
-        res = requests.get(
-            f"https://{self.username}.github.io/{self.name}/api/tutorials.json"
-        )
-        if res.status_code != 200:
-            logger.warning(res.text)
-            return False
-        metadata = res.json()
+        # These don't technically have a name without context
+        if self.vcs == "local":
+            metadata = {"local": {"tutorial": utils.read_yaml(self.fullname)}}
+        else:
+            res = requests.get(
+                f"https://{self.username}.github.io/{self.name}/api/tutorials.json"
+            )
+            if res.status_code != 200:
+                logger.warning(res.text)
+                return False
+            metadata = res.json()
 
         # Validate tutorials on the top level
         if jsonschema.validate(metadata, schema=schemas.tutorials) is not None:
