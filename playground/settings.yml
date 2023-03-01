@@ -2,7 +2,7 @@
 # of setting for the tool.
 
 # backends that are supported
-backends: [docker, google, aws]
+backends: [docker, google, aws, podman]
 
 # config editor
 config_editor: vim

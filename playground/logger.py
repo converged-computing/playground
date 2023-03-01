@@ -10,6 +10,11 @@ import platform
 import sys
 import threading
 
+from rich.console import Console
+from rich.live import Live
+from rich.spinner import Spinner
+from rich.text import Text
+
 
 class LogColors:
     PURPLE = "\033[95m"
@@ -100,6 +105,7 @@ class Logger:
         self.logfile = None
         self.last_msg_was_job_info = False
         self.logfile_handler = None
+        self.c = Console()
 
     def cleanup(self):
         if self.logfile_handler is not None:
@@ -184,6 +190,23 @@ class Logger:
 logger = Logger()
 
 
+def wrapped_wait(
+    func, start_text="Waiting for tutorial to be ready...", style="green", kwargs=None
+):
+    """
+    Wrap a function, which should yield results (text) until it's finished
+    """
+    kwargs = kwargs or {}
+
+    # Wait until the page does not 404
+    spin = Spinner("dots", text=Text(start_text, style=style))
+
+    # Show a spinner until ready
+    with Live(spin, refresh_per_second=20):
+        for msg in func(**kwargs):
+            spin.update(text=msg, style=style)
+
+
 def setup_logger(
     quiet=False,
     printshellcmds=False,
@@ -191,7 +214,6 @@ def setup_logger(
     stdout=False,
     debug=False,
     use_threads=False,
-    wms_monitor=None,
 ):
     # console output only if no custom logger was specified
     stream_handler = ColorizingStreamHandler(

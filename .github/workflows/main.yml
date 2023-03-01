@@ -1,0 +1,26 @@
+name: test playground
+on: [pull_request]
+
+jobs:
+  lint-playground:
+    name: Lint Playground
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check Spelling
+      uses: crate-ci/typos@7ad296c72fa8265059cc03d1eda562fbdfcd6df2 # v1.9.0
+      with:
+        files: ./docs/*.md ./README.md
+
+  test-playground:
+    name: Test Playground
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install playground
+      run: sudo pip install -e .[all]
+
+    - name: Run tests
+      run: |
+        sudo pip install pytest
+        pytest -xs playground/tests/test_*.py

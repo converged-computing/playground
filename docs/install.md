@@ -47,8 +47,6 @@ This should place an executable, `playground` in your path.
 
 ## Podman
 
-> **coming soon**
-
 If you want to use Podman containers, you'll need podman!
 There are notes on installing Podman [here](https://podman.io/getting-started/installation)
 but in practice I found them not super great. What I ultimately had to do for Ubuntu 20.04 to run a container is:
@@ -64,5 +62,5 @@ podman system migrate
 and then test with
 
 ```bash
-podman run busybox
+$ podman run busybox
 ```

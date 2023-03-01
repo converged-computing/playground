@@ -1,6 +1,6 @@
 # Commands
 
-The following commands are suppored when using `playground`:
+The following commands are supported when using `playground`:
 
 ## config
 
@@ -161,4 +161,4 @@ And then to stop:
 $ playground stop --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 
-**More coming soon!**
+For cloud or backend specific options and examples, see our [backends guide](backends.md)

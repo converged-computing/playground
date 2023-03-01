@@ -589,7 +589,7 @@ class AmazonCloud(Backend):
             logger.info(f"Using default instance {instance}")
         return instance
 
-    def deploy(self, tutorial, envars=None):
+    def deploy(self, tutorial, envars=None, **kwargs):
         """
         Deploy to AWS
 

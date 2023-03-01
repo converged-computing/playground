@@ -21,13 +21,6 @@ container to different clouds.
 
 For early documentation, see ⭐️ [docs](docs) ⭐️
 
-## TODO
-
-- [ ] add podman backend
-- [ ] testing
-- [ ] there should be an option to pull (or check for exist and then not have to)
-- [ ] port format (list of strings) needs validation
-
 ## 😁️ Contributors 😁️
 
 We use the [all-contributors](https://github.com/all-contributors/all-contributors)

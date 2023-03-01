@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (MIT)
 
 import playground.main.backends as backends
+import playground.main.decorators as decorators
 import playground.main.repository as repository
 from playground.logger import logger
 
@@ -30,6 +31,7 @@ class Playground:
     def __str__(self):
         return "[playground-client]"
 
+    @decorators.repository
     def list(self):
         """
         List tutorials in a playground
@@ -37,12 +39,19 @@ class Playground:
         for tutorial in self.repo.tutorials:
             print("🍓 %s\n" % tutorial.name)
 
+    def load(self, repo):
+        """
+        Load a repository
+        """
+        self.repo = repository.Repository(repo)
+
     def instances(self):
         """
         List running instances on the backend
         """
         return self.backend.instances()
 
+    @decorators.repository
     def get_tutorial(self, name):
         """
         Show complete repositorty metadata
@@ -53,6 +62,7 @@ class Playground:
             return
         return tutorial
 
+    @decorators.repository
     def get_tutorials(self):
         """
         Courtesy function to return a tutorial.
@@ -69,7 +79,7 @@ class Playground:
                     f"Environment variable {envar['name']} is required but not present. Add with --env"
                 )
 
-    def deploy(self, name, envars=None):
+    def deploy(self, name, envars=None, **kwargs):
         """
         Deploy a playground
         """
@@ -81,7 +91,7 @@ class Playground:
             logger.error(f"There is no tutorial found named {name} for {self.repo}")
             return
         self.check_envars(tutorial, envars)
-        return self.backend(settings=self.settings).deploy(tutorial, envars)
+        return self.backend(settings=self.settings).deploy(tutorial, envars, **kwargs)
 
     def stop(self, name):
         """

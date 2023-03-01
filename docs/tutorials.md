@@ -19,7 +19,7 @@ tutorials.
 
 ## What is a tutorial repository?
 
-A tutorial repostiory provides:
+A tutorial repository provides:
 
 1. An organized structure of named tutorials
 2. Metadata to go along with each tutorial folder in a `tutorial.yaml`
