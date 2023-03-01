@@ -21,7 +21,7 @@ jobs:
       run: sudo pip install -e .[all]
 
     - name: Run test command
-      run: playground test rse-ops/flux-framework radiuss-aws-2022
+      run: playground test rse-ops/flux-tutorials radiuss-aws-2022
 
   test-playground:
     name: Test Playground
