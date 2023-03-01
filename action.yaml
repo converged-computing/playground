@@ -27,7 +27,7 @@ runs:
       run: |
         which playground || (
             git clone -b ${branch} --depth 1 https://github.com/converged-computing/playground /tmp/playground
-            cd /tmp/playgrond
+            cd /tmp/playground
             pip install .[all]
             cd -
             rm -rf /tmp/playground
