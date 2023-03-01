@@ -15,10 +15,10 @@ tutorial on your local machine. Current desired backends include:
  - **Docker**: run the tutorial via a Docker container (local)
  - **AWS**: run the tutorial on an AWS EC2 instance
  - **GCP**: run the tutorial on Google Compute Engine
-
-And coming soon or hopefully (when resources allow):
-
  - **Podman**: run the tutorial via a Podman container (local or HPC)
+
+And coming soon or hopefully (when resources allow or when requested):
+
  - **Singularity**: run the tutorial via a Singularity container (e.g., for HPC)
  - **Azure**: run the tutorial on Azure cloud
 
