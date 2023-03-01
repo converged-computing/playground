@@ -12,8 +12,3 @@ class PodmanClient(DockerClient):
     """
 
     name = "podman"
-
-    def __init__(self, **kwargs):
-        self.check()
-        super(PodmanClient, self).__init__()
-        self.name = "podman"

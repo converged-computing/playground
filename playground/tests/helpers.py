@@ -42,11 +42,10 @@ def init_client(tmpdir, backend=None):
     """
     Get a common playground client
     """
-    backends = [backend] if backend else None
     new_settings = get_settings(tmpdir)
     client = Playground(
         quiet=False,
         settings_file=new_settings,
-        backends=backends,
+        backend=backend,
     )
     return client
