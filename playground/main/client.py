@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: (MIT)
 
+import time
+
+import requests
+
 import playground.main.backends as backends
 import playground.main.decorators as decorators
 import playground.main.repository as repository
@@ -50,6 +54,28 @@ class Playground:
         List running instances on the backend
         """
         return self.backend.instances()
+
+    @decorators.repository
+    def test(self, name, sleep=5, http_code=200, **options):
+        """
+        Test a named tutorial.
+        """
+        if self.backend.name in ["docker", "podman"]:
+            options["headless"] = True
+
+        # This also returns the pid if we wanted it
+        logger.c.print("Testing deploy...", style="yellow")
+        res = self.deploy(name, **options)
+        logger.c.print("Testing for successful return code...", style="yellow")
+        assert res["return_code"] == 0
+        time.sleep(sleep)
+        logger.c.print("Testing for successful HTTP response...", style="yellow")
+        response = requests.get("https://127.0.0.1:8000", verify=False)
+        assert response.status_code == http_code
+        logger.c.print("Testing stop...", style="yellow")
+        res = self.stop(name)
+        assert res["return_code"] == 0
+        logger.c.print("All tests pass!", style="green")
 
     @decorators.repository
     def get_tutorial(self, name):

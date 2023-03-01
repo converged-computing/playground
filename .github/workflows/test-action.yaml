@@ -1,0 +1,37 @@
+name: Test Action
+on:
+  pull_request: []
+
+jobs:
+  test-local-tutorial:
+    name: Test a local tutorial file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install playground
+        run: sudo pip install -e .[all]
+
+      # Make sure to build your container here, otherwise
+      # it will be pulled (or attempted to pull) from a registry
+      - name: Test Tutorial
+        uses: ./
+        with:
+          source: ./playground/tests/testdata/tutorial.yaml
+
+  test-remote-tutorial:
+    name: Test a remote tutorial
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install playground
+        run: sudo pip install -e .[all]
+
+      - name: Test Tutorial
+        uses: ./
+        with:
+          source: rse-ops/flux-tutorials
+          tutorial: radiuss-aws-2022
