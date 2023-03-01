@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: deploy playground
 
 on:
   # Always test on pull request

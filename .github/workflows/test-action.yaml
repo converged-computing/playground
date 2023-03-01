@@ -1,4 +1,4 @@
-name: Test Action
+name: test-action playground
 on:
   pull_request: []
 
