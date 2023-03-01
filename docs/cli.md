@@ -173,7 +173,6 @@ and repository.
 $ playground test github.com/rse-ops/flux-tutorials radiuss-aws-2022
 ```
 ```console
-$ playground test github.com/rse-ops/flux-tutorials radiuss-aws-2022
 Testing deploy...
 jupyter-3.0.0: Pulling from rse-ops/flux-radiuss-aws-2022
 Digest: sha256:35c19161f5cff609cfc23e6c39f9037ec1575f2f66794fd102772485df7e9a1c
