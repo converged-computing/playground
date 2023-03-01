@@ -2,44 +2,6 @@
 
 The following commands are supported when using `playground`:
 
-## config
-
-Config is a handle to see or edit playground settings.
-
-### get
-
-See a playground setting
-
-```bash
-$ playground config get backends
-backends                       ['docker', 'google', 'aws']
-```
-
-Or set a value:
-
-```bash
-$ playground config set default_backend docker
-```
-
-Or remove/add a value to a list:
-
-```bash
-$ playground config remove backends docker
-$ playground config add backends docker
-```
-
-Create user settings
-
-```bash
-$ playground config inituser
-```
-
-And edit!
-
-```bash
-$ playground config edit
-```
-
 ## list
 
 List is used to list tutorials associated with a repository.
@@ -162,3 +124,66 @@ $ playground stop --backend aws github.com/rse-ops/flux-tutorials radiuss-aws-20
 ```
 
 For cloud or backend specific options and examples, see our [backends guide](backends.md)
+
+
+## config
+
+Config is a handle to see or edit playground settings.
+
+### get
+
+See a playground setting
+
+```bash
+$ playground config get backends
+backends                       ['docker', 'google', 'aws']
+```
+
+Or set a value:
+
+```bash
+$ playground config set default_backend docker
+```
+
+Or remove/add a value to a list:
+
+```bash
+$ playground config remove backends docker
+$ playground config add backends docker
+```
+
+Create user settings
+
+```bash
+$ playground config inituser
+```
+
+And edit!
+
+```bash
+$ playground config edit
+```
+
+## test
+
+Finally, test is  useful to quickly test the functionality of a specific tutorial
+and repository.
+
+```bash
+$ playground test github.com/rse-ops/flux-tutorials radiuss-aws-2022
+```
+```console
+Testing deploy...
+jupyter-3.0.0: Pulling from rse-ops/flux-radiuss-aws-2022
+Digest: sha256:35c19161f5cff609cfc23e6c39f9037ec1575f2f66794fd102772485df7e9a1c
+Status: Image is up to date for ghcr.io/rse-ops/flux-radiuss-aws-2022:jupyter-3.0.0
+ghcr.io/rse-ops/flux-radiuss-aws-2022:jupyter-3.0.0
+/usr/bin/docker run -d --rm --name vanessaflux-tutorial-2022-for-radiuss -p 8000:8000 ghcr.io/rse-ops/flux-radiuss-aws-2022:jupyter-3.0.0
+⠧ https://127.0.0.1:8000 is ready: response code 200
+Ready: https://127.0.0.1:8000
+Testing for successful return code...
+Testing for successful HTTP response...
+Testing stop...
+vanessaflux-tutorial-2022-for-radiuss
+All tests pass!
+```
