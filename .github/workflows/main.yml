@@ -12,6 +12,17 @@ jobs:
       with:
         files: ./docs/*.md ./README.md
 
+  test-command:
+    name: playground test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install playground
+      run: sudo pip install -e .[all]
+
+    - name: Run test command
+      run: playground test rse-ops/flux-framework radiuss-aws-2022
+
   test-playground:
     name: Test Playground
     runs-on: ubuntu-latest

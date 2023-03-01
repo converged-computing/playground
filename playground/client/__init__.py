@@ -94,6 +94,26 @@ playground -c rm:registry:/tmp/registry""",
         default="ipython",
     )
 
+    test = subparsers.add_parser(
+        "test",
+        description="test a playground deployment (if docker/podman will be headless)",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    test.add_argument(
+        "--sleep",
+        "-s",
+        help="time to wait after container running to test HTTP endpoint",
+        default=5,
+        type=int,
+    )
+    test.add_argument(
+        "--http-code",
+        dest="http_code",
+        help="HTTP code to test for (defaults to 200)",
+        default=200,
+        type=int,
+    )
+
     config = subparsers.add_parser(
         "config",
         description="update configuration settings. Use set or get to see or set information.",
@@ -138,30 +158,29 @@ playground config add backend aws""",
         description="deploy a tutorial repository.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    deploy.add_argument(
-        "-o",
-        dest="deploy_options",
-        help=""""Add deploy options for a backend of choice
+
+    for command in deploy, test:
+        command.add_argument(
+            "-o",
+            dest="deploy_options",
+            help=""""Add deploy options for a backend of choice
 playground deploy -o headless:true <args>
 """,
-        action="append",
-    )
+            action="append",
+        )
 
     stop = subparsers.add_parser(
         "stop",
         description="stop a tutorial.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    for command in show, deploy, listing, stop:
+    for command in show, deploy, listing, stop, test:
         command.add_argument("repo", help="the tutorial repository to target.")
 
     show.add_argument(
         "--outfile",
         dest="outfile",
         help="Write repository as json to output file.",
-    )
-    show.add_argument(
-        "tutorial_name", help="the tutorial name to show (optional).", nargs="?"
     )
 
     deploy.add_argument(
@@ -170,12 +189,12 @@ playground deploy -o headless:true <args>
         help="environment variable key pair key=pair to use during deploy.",
         action="append",
     )
-    for command in deploy, stop:
+    for command in deploy, stop, show, test:
         command.add_argument(
             "tutorial_name", help="the tutorial name to target (required)"
         )
 
-    for command in deploy, show, listing, shell, stop:
+    for command in deploy, show, listing, shell, stop, test:
         command.add_argument(
             "-b",
             "--backend",
@@ -242,6 +261,8 @@ def run():
         from .stop import main
     elif args.command == "show":
         from .show import main
+    elif args.command == "test":
+        from .test import main
 
     # Pass on to the correct parser
     return_code = 0

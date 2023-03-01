@@ -37,5 +37,5 @@ jobs:
         run: |
             set -x
             docker images
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker push --all-tags ${{ env.container }}
