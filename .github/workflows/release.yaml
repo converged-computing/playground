@@ -1,4 +1,4 @@
-name: playground release
+name: release playground
 
 on:
   release:

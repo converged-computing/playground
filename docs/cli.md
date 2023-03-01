@@ -1,8 +1,12 @@
 # Commands
 
-The following commands are supported when using `playground`:
+The following commands are supported when using `playground`.
+For each of the below, we label them as being for a local tutorial.yaml,
+or a remote tutorial repository, or both.
 
 ## list
+
+> remote tutorial repository
 
 List is used to list tutorials associated with a repository.
 Any of the following formats will work:
@@ -22,6 +26,8 @@ option to show repositories that are available. Note that the convention
 above (for shortened repository names) will work for any command.
 
 ## show
+
+> remote tutorial repository
 
 To see the full JSON metadata for a particular repository, use `show`:
 
@@ -71,7 +77,31 @@ you deploy, e.g., "password" discussed next.
 
 ## deploy
 
+> local
+
+For any of the commands below, for a local `tutorial.yaml` you can achieve a deploy as
+follows:
+
+```bash
+$ playground deploy ./path/to/tutorial.yaml
+
+# When tutorial.yaml is in the present working directory
+$ playground deploy
+
+# Try doing a headless deploy for docker or podman
+$ playground deploy -o headless=True
+
+# And stop!
+$ playground stop
+```
+
+> remote tutorial repositoy
+
+For a remote tutorial repository, you'll need to specify the repository
+unique resource identifier and the tutorial name (shown below).
+
 ### docker
+
 
 Deploy a playground tutorial from a GitHub repository.
 

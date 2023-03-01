@@ -175,7 +175,12 @@ playground deploy -o headless:true <args>
         formatter_class=argparse.RawTextHelpFormatter,
     )
     for command in show, deploy, listing, stop, test:
-        command.add_argument("repo", help="the tutorial repository to target.")
+        command.add_argument(
+            "repo",
+            help="the tutorial repository to target.",
+            nargs="?",
+            default="tutorial.yaml",
+        )
 
     show.add_argument(
         "--outfile",
@@ -191,7 +196,10 @@ playground deploy -o headless:true <args>
     )
     for command in deploy, stop, show, test:
         command.add_argument(
-            "tutorial_name", help="the tutorial name to target (required)"
+            "tutorial_name",
+            help="the tutorial name to target (required)",
+            nargs="?",
+            default="local",
         )
 
     for command in deploy, show, listing, shell, stop, test:
