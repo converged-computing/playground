@@ -10,6 +10,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Install playground
+        run: sudo pip install -e .[all]
+
       # Make sure to build your container here, otherwise
       # it will be pulled (or attempted to pull) from a registry
       - name: Test Tutorial
@@ -23,6 +26,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - name: Install playground
+        run: sudo pip install -e .[all]
+
       - name: Test Tutorial
         uses: ./
         with:

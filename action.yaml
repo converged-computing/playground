@@ -39,5 +39,5 @@ runs:
         tutorial: ${{ inputs.tutorial }}
         backend: ${{ inputs.backend }}
       run: |
-          playground --backend ${backend} test ${source} ${tutorial}
+          playground test --backend ${backend} ${source} ${tutorial}
       shell: bash
